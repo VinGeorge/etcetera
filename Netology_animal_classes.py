@@ -1,33 +1,64 @@
-# Небольшая заготовка для ДЗ, с целью разобраться с понятием Class
-# Просьба вернуть на доработку
-
-
-class Animal:
-    weigth = None
-    current_speed = 0
-    max_speed = 10
+class Animals:
+    current_speed_run = 0
+    current_speed_fly = 0
     flags = None
+    avr_weight = 50
+    avr_height = 30
+    get_voice = None
 
-    def __init__(self, flags):
+    def __init__(self, avr_weight, avr_height, flags, get_voice):
+        self.avr_weight = avr_weight
+        self.avr_height = avr_height
+        self.get_voice = get_voice
         self.flags = flags
 
-    def voce(self):
-        print("something")
+    def voice(self):
+        print(self.get_voice)
 
-    def start(self, value):
-        self.current_speed += value
+    def running(self, value):
+        self.current_speed_run += value
+
+    def flying(self, value):
+        if can_fly == "Yes":
+            self.current_speed_fly += value
+        else:
+            print("It's mammals or chiken :( ")
+
+    def sleep(self):
+        self.current_speed_run = 0
+        self.current_speed_fly = 0
+        print("It's already asleep" )
 
     def stop(self):
         self.current_speed = 0
         print('stopted')
 
-animal = Animal("Yes")
-print(animal.flags)
-animal.voce()
 
-class birds(Animal):
-    max_speed = 20
+class Cows(Animals):
+    avr_milk_daily = 10
+    avr_speed_weight_month = 15
+cows = Cows(150, 150, None, "МУУУ!")
 
-Birds = birds('Yes')
 
-print(Birds.__dict__)
+class Goats(Animals):
+    avr_milk_daily = 10
+goats = Goats(40, 60, None, "Мееее!")
+
+class Sheeps(Animals):
+    avr_hair_month = 14
+sheeps = Sheeps(40, 60, None, "Бееее!")
+
+class Pigs(Animals):
+    avr_speed_weight_month = 7
+
+class Ducks(Animals):
+    can_fly = "Yes"
+    avr_duckling_season = 8
+
+class Chikens(Animals):
+    avr_eggs_daily = 2
+
+class Gooses(Animals):
+    Ga_ga = "Ofcourse"
+
+cows.voice()
