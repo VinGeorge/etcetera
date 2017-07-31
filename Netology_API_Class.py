@@ -1,5 +1,4 @@
 from pprint import pprint
-import requests
 from urllib.parse import urlencode
 
 import requests
@@ -29,3 +28,5 @@ def get_counter():
 
 
 get_counter()
+
+# Здравствуйте, Артём. Спасибо за лекцию! Просьба вернуть работу на доработку
