@@ -7,6 +7,7 @@
 from pprint import pprint
 from urllib.parse import urlencode
 import requests
+import time
 
 AUTHORIZE_URL = 'https://oauth.vk.com/authorize'
 VERSION = '5.67'
@@ -25,41 +26,82 @@ print('?'.join(
     (AUTHORIZE_URL, urlencode(auth_data))
 ))
 
-TOKEN = '2bcb0c9ad8fa316b02f9af34a2ac518721b1d1810a000a05d0a26d74257c0d977b81ba438da4518d0413e'
+TOKEN = '2dad8380aeec77a8b2ba128ab5aa773842110de1824faf8801385090b68316a4d1ea6e6859245fe3afb53'
 
-params = {
+params_for_me = {
     'access_token': TOKEN,
     'v': VERSION,
-    # 'user_id': 63364192
+    'extended': 1,
+    'fields': 'members_count',
+    # 'count':
 }
 
+params_for_one_friend = {
+    'access_token': TOKEN,
+    'v': VERSION,
+    'user_id': 2123372
+}
+
+# params для групп
+params_for_friends = {
+    'access_token': TOKEN,
+    'v': VERSION,
+    'count': 1000
+}
+
+
 # Получаем список моих друзей
-response_get_my_friends = requests.get('https://api.vk.com/method/friends.get', params).json()
-friends_list = []
-for friend in response_get_my_friends['response']['items']:
-    friends_list.append(friend)
+def get_friends_list():
+    response_get_my_friends = requests.get('https://api.vk.com/method/friends.get', params_for_me).json()
+    friends_list = []
+    for friend in response_get_my_friends['response']['items']:
+        friends_list.append(friend['id'])
+    return friends_list
+
 
 # Получаем список моих групп
-response_get_my_groups = requests.get('https://api.vk.com/method/groups.get', params).json()
-my_groups_list = []
+groups = []
+response_get_my_groups = requests.get('https://api.vk.com/method/groups.get', params_for_me).json()
 for group in response_get_my_groups['response']['items']:
-    my_groups_list.append(group)
+    try:
+        groups.append({'Name': group['name'], 'id': group['id'], 'members_count': group['members_count']})
+    except Exception:
+        time.sleep(2)
+
+
+# Список групп одного друга
+# friend_groups = []
+# one_friends_group_list = requests.get('https://api.vk.com/method/groups.get', params_for_one_friend).json()
+# friend_group_list = one_friends_group_list['response']['items']
+# for id in friend_group_list:
+#     try:
+#         friend_groups.append(id)
+#     except Exception:
+#         time.sleep(2)
+
 
 # Получаем список групп моих друзей
-friends_group_list = []
-for friend in response_get_my_friends['response']['items']:
-    params['user_id'] = friend
-    response_friends_group = requests.get('https://api.vk.com/method/groups.get', params).json()
-    for friends_group in response_friends_group['response']['items']:
-        friends_group_list.append(friends_group)
+friends_groups_list = []
+for friend in get_friends_list():
+    params_for_friends['user_id'] = friend
+    response_friends_group = requests.get('https://api.vk.com/method/groups.get', params_for_friends).json()
+    print('...')
+    try:
+        for friends_group in response_friends_group['response']['items']:
+            friends_groups_list.append(friends_group)
+    except Exception:
+        time.sleep(2)
 
-print(len(friends_group_list))
+new_list = []
+for group_one in groups:
+    if group_one['id'] not in friends_groups_list:
+        new_list.append({'id': group_one['id'], 'Name': group_one['Name'], 'members_count': group_one['members_count']})
 
-        # params['user_id'] = "tim_leary"
-    # get_friends = requests.get('https://api.vk.com/method/friends.get', params).json()
-#     pprint(test)
-    # pprint(get_friends)
-    # print('{} | {}'.format(i, response['response']['items'])
-    # for friends in get_friends['response']['items']:
-    #     friends_list.append(friends)
-    #     pprint(friends_list)
+pprint(new_list)
+
+# new_list = []
+# for group_one in groups:
+#     if group_one['id'] not in friend_groups:
+#         new_list.append({'id': group_one['id'], 'Name': group_one['Name'], 'members_count': group_one['members_count']})
+#
+# pprint(new_list)
