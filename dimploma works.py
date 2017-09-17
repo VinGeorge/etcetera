@@ -44,8 +44,22 @@ params = {
 }
 
 test = requests.get(api_get_friends, params)
-print(test.status_code)
+print('Статус страницы - {}'.format(test.status_code))
 
+def do_request(url, params):
+    while True:
+        res = requests.get(url, params).json()
+        if 'error' in res:
+            if res['error']['error_code'] == 6:
+                time.sleep(0.4)
+                continue
+            elif res['error']['error_code'] == 18:
+                return None
+            else:
+                print('{}'.format(res['error']['error_msg']))
+        else:
+            break
+    return
 
 # params_for_one_friend = {
 #     'access_token': TOKEN,
@@ -57,25 +71,18 @@ print(test.status_code)
 # Получаем список моих друзей
 def get_friends_list():
 
-    params_for_me = {
-    'access_token': TOKEN,
-    'v': VERSION}
+    params_for_me = params
 
-    # params_for_me['count'] = 10
+    params_for_me['count'] = 10
     params_for_me['extended'] = 1
     params_for_me['fields'] = 'members_count'
     response_get_my_friends = requests.get(api_get_friends, params_for_me).json()
     friends_list = []
-
-    try:
+    if 'error' in response_get_my_friends:
+        do_request(api_get_friends, params_for_me)
+    else:
         for friend in response_get_my_friends['response']['items']:
             friends_list.append(friend['id'])
-    except KeyError:
-        if response_get_my_friends['error']['error_code'] == 18:
-            print('Error_code : 18')
-        elif response_get_my_friends['error']['error_code'] == 6:
-            time.sleep(0.4)
-            get_friends_list()
     return friends_list
 
 
@@ -83,24 +90,18 @@ def get_friends_list():
 def get_groups():
     groups = []
 
-    params_for_me = {
-    'access_token': TOKEN,
-    'v': VERSION}
+    params_for_me = params
 
     params_for_me['extended'] = 1
     params_for_me['fields'] = 'members_count'
     params_for_me['id'] = 63364192
     response_get_my_groups = requests.get(api_get_group, params_for_me).json()
-
-    try:
+    if 'error' in response_get_my_groups:
+        do_request(api_get_group, params_for_me)
+    else:
         for group in response_get_my_groups['response']['items']:
             groups.append({'Name': group['name'], 'id': group['id'], 'members_count': group['members_count']})
-    except KeyError:
-        if response_get_my_groups['error']['error_code'] == 18:
-            print('Error_code : 18')
-        elif response_get_my_groups['error']['error_code'] == 6:
-            time.sleep(0.4)
-            get_groups()
+
     return groups
 
 # Получаем список групп моих друзей
@@ -109,7 +110,8 @@ def get_groups_friends():
 
     params_for_friends = {
     'access_token': TOKEN,
-    'v': VERSION}
+    'v': VERSION
+    }
 
     friends_list = get_friends_list()
 
@@ -120,16 +122,11 @@ def get_groups_friends():
         i += 1
         excess = (int(len(get_friends_list())) - i)
         print('Всего друзей - {}. Осталось проверить - {}'.format(len(friends_list), excess))
-
-        try:
+        if 'error' in response_friends_group:
+            do_request(api_get_group, params_for_friends)
+        else:
             for friends_group in response_friends_group['response']['items']:
                 friends_groups_list.append(friends_group)
-        except KeyError:
-            if response_friends_group['error']['error_code'] == 18:
-                print('Error_code : 18')
-            elif response_friends_group['error']['error_code'] == 6:
-                time.sleep(0.4)
-                exception(params_for_friends, friends_groups_list)
 
     friends_groups_list = set(friends_groups_list)
     return friends_groups_list
@@ -138,31 +135,18 @@ def finish():
     new_list = []
     friends_groups_set = get_groups_friends()
     my_groups = get_groups()
-    for i, group_one in enumerate(my_groups):
+    for group_one in my_groups:
         if group_one['id'] not in friends_groups_set:
             new_list.append({'id': group_one['id'], 'Name': group_one['Name'], 'members_count': group_one['members_count']})
-            i += 1
-            total_group = int(len(my_groups))
-            count = (i*100 // total_group)
-            if count % 5 == 0:
-                print('Осталось проверить {} %'.format(100-count))
+    with open('new_file.txt', 'w') as f:
+        f.write(new_list)
     return new_list
 
-pprint(finish())
+# pprint(finish())
 
 # pprint(get_friends_list())
 # pprint(get_groups())
-# pprint(get_groups_friends())
+pprint(get_groups_friends())
 
-def exception(params, test):
-    response_friends_group = requests.get(api_get_group, params).json()
-    try:
-        for friends_group in response_friends_group['response']['items']:
-            test.append(friends_group)
-    except KeyError:
-        if response_friends_group['error']['error_code'] == 18:
-            print('Error_code : 18')
-        elif response_friends_group['error']['error_code'] == 6:
-            time.sleep(0.4)
-            exception(params_for_friends, friends_groups_list)
-    return
+
+# do_request(api_get_group, params)
