@@ -8,6 +8,7 @@ from pprint import pprint
 from urllib.parse import urlencode
 import requests
 import time
+import json
 
 with open('/Users/yvdsd/SandBox/TOKEN.py', 'rb') as f:
     TOKEN = f.read()
@@ -57,9 +58,9 @@ def do_request(url, params):
                 return None
             else:
                 print('{}'.format(res['error']['error_msg']))
+                break
         else:
-            break
-    return
+            return set
 
 # params_for_one_friend = {
 #     'access_token': TOKEN,
@@ -73,7 +74,7 @@ def get_friends_list():
 
     params_for_me = params
 
-    params_for_me['count'] = 10
+    params_for_me['count'] = 100
     params_for_me['extended'] = 1
     params_for_me['fields'] = 'members_count'
     response_get_my_friends = requests.get(api_get_friends, params_for_me).json()
@@ -138,15 +139,15 @@ def finish():
     for group_one in my_groups:
         if group_one['id'] not in friends_groups_set:
             new_list.append({'id': group_one['id'], 'Name': group_one['Name'], 'members_count': group_one['members_count']})
-    with open('new_file.txt', 'w') as f:
-        f.write(new_list)
+    with open('new_file.json', 'w') as f:
+        json.dump(new_list, f)
     return new_list
 
-# pprint(finish())
+pprint(finish())
 
 # pprint(get_friends_list())
 # pprint(get_groups())
-pprint(get_groups_friends())
+# pprint(get_groups_friends())
 
 
 # do_request(api_get_group, params)
