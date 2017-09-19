@@ -60,7 +60,7 @@ def do_request(url, params):
                 print('{}'.format(res['error']['error_msg']))
                 break
         else:
-            return set
+            return res
 
 # params_for_one_friend = {
 #     'access_token': TOKEN,
@@ -74,16 +74,18 @@ def get_friends_list():
 
     params_for_me = params
 
-    params_for_me['count'] = 100
+    # params_for_me['count'] = 100
     params_for_me['extended'] = 1
     params_for_me['fields'] = 'members_count'
-    response_get_my_friends = requests.get(api_get_friends, params_for_me).json()
     friends_list = []
-    if 'error' in response_get_my_friends:
-        do_request(api_get_friends, params_for_me)
-    else:
-        for friend in response_get_my_friends['response']['items']:
-            friends_list.append(friend['id'])
+    response_get_my_friends = do_request(api_get_friends, params_for_me)
+    for friend in response_get_my_friends['response']['items']:
+        friends_list.append(friend['id'])
+    # if 'error' in response_get_my_friends:
+    #     do_request(api_get_friends, params_for_me)
+    # else:
+    #     for friend in response_get_my_friends['response']['items']:
+    #         friends_list.append(friend['id'])
     return friends_list
 
 
@@ -96,13 +98,15 @@ def get_groups():
     params_for_me['extended'] = 1
     params_for_me['fields'] = 'members_count'
     params_for_me['id'] = 63364192
-    response_get_my_groups = requests.get(api_get_group, params_for_me).json()
-    if 'error' in response_get_my_groups:
-        do_request(api_get_group, params_for_me)
-    else:
-        for group in response_get_my_groups['response']['items']:
-            groups.append({'Name': group['name'], 'id': group['id'], 'members_count': group['members_count']})
-
+    response_get_my_groups = do_request(api_get_group, params_for_me)
+    for group in response_get_my_groups['response']['items']:
+        groups.append({'Name': group['name'], 'id': group['id'], 'members_count': group['members_count']})
+    # response_get_my_groups = requests.get(api_get_group, params_for_me).json()
+    # if 'error' in response_get_my_groups:
+        # do_request(api_get_group, params_for_me)
+    # else:
+        # for group in response_get_my_groups['response']['items']:
+            # groups.append({'Name': group['name'], 'id': group['id'], 'members_count': group['members_count']})
     return groups
 
 # Получаем список групп моих друзей
@@ -119,15 +123,22 @@ def get_groups_friends():
     for i, friend in enumerate(friends_list):
         params_for_friends['count'] = 1000
         params_for_friends['user_id'] = friend
-        response_friends_group = requests.get(api_get_group, params_for_friends).json()
         i += 1
         excess = (int(len(get_friends_list())) - i)
         print('Всего друзей - {}. Осталось проверить - {}'.format(len(friends_list), excess))
-        if 'error' in response_friends_group:
-            do_request(api_get_group, params_for_friends)
+        response_friends_group = do_request(api_get_group, params_for_friends)
+        # pprint(response_friends_group)
+        if response_friends_group is None:
+            continue
         else:
             for friends_group in response_friends_group['response']['items']:
                 friends_groups_list.append(friends_group)
+        # response_friends_group = requests.get(api_get_group, params_for_friends).json()
+        # if 'error' in response_friends_group:
+        #     do_request(api_get_group, params_for_friends)
+        # else:
+        #     for friends_group in response_friends_group['response']['items']:
+        #         friends_groups_list.append(friends_group)
 
     friends_groups_list = set(friends_groups_list)
     return friends_groups_list
