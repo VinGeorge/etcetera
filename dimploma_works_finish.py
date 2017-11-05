@@ -4,10 +4,7 @@ import requests
 import time
 import json
 import os
-
-token_file_name = input("TOKEN FILE NAME IS -> ")
-if not token_file_name == None:
-    token_file_name = 'token.py'
+import vk_params
 
 VERSION = '5.67'
 API_GET_GROUP = 'https://api.vk.com/method/groups.get'
@@ -17,17 +14,11 @@ ERROR_REQUESTS = 6
 ERROR_PAGES = 18
 APP_ID = 6166373
 
-# Определяем путь к токену
-def read_token_file(file_name):
-    current_dectory = os.getcwd()
-    with open('{}/{}'.format(current_dectory, file_name), 'rb') as f:
-        TOKEN = f.read()
-    return TOKEN
 
-# Получаем токен
+# Получаем ссылку на токен
 def get_token(file_name):
-    current_dectory = open(file_name)
-    if os.path.exists(current_dectory) is False:
+    token_file_path = os.path.realpath(file_name)
+    if os.path.exists(token_file_path) is False:
 
         auth_data = {
             'client_id': APP_ID,
@@ -43,15 +34,6 @@ def get_token(file_name):
             (AUTHORIZE_URL, urlencode(auth_data))
         ))
     return
-
-# Получаем params
-def make_vk_params(**kwargs):
-    params = {
-        'access_token': TOKEN,
-        'v': VERSION,
-    }
-    params.update(kwargs)
-    return params
 
 # Запрос статуса страницы
 # test = requests.get(api_get_friends, make_vk_params())
@@ -79,7 +61,7 @@ def get_friends_list():
         'extended': 1,
         'fields': 'members_count',
     }
-    params_for_me = make_vk_params(**params)
+    params_for_me = vk_params.make_vk_params(**params)
     friends_list = []
     response_get_my_friends = do_request(API_GET_FRIENDS, params_for_me)
     for friend in response_get_my_friends['response']['items']:
@@ -93,7 +75,7 @@ def get_groups():
               'fields':'members_count',
               'id': 63364192
               }
-    params_for_me = make_vk_params(**params)
+    params_for_me = vk_params.make_vk_params(**params)
     response_get_my_groups = do_request(API_GET_GROUP, params_for_me)
     for group in response_get_my_groups['response']['items']:
         groups.append({'Name': group['name'], 'id': group['id'], 'members_count': group['members_count']})
@@ -109,7 +91,7 @@ def get_groups_friends():
             'count': 1000,
             'user_id': friend
         }
-        params_for_friends = make_vk_params(**params)
+        params_for_friends = vk_params.make_vk_params(**params)
         excess = friends_count - i
         print('Всего друзей - {}. Осталось проверить - {}'.format(friends_count, excess))
         response_friends_group = do_request(API_GET_GROUP, params_for_friends)
@@ -122,8 +104,7 @@ def get_groups_friends():
 
 # Основная функция
 def main():
-    get_token(token_file_name)
-    TOKEN = read_token_file(token_file_name)
+    get_token(vk_params.file_name())
     private_groups = []
     friends_groups_set = get_groups_friends()
     my_groups = get_groups()
@@ -135,8 +116,7 @@ def main():
     return private_groups
 
 
-# pprint(get_friends_list())
-# pprint(get_groups())
-# pprint(get_groups_friends())
-
 main()
+
+
+
